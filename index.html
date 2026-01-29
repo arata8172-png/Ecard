@@ -42,6 +42,45 @@ button.action {
 .hidden {
   display: none;
 }
+  /* ===== 結果演出 ===== */
+.result-text {
+  font-size: 42px;
+  font-weight: bold;
+  margin-top: 20px;
+  letter-spacing: 4px;
+  text-shadow:
+    0 0 10px rgba(255,255,255,0.6),
+    0 0 20px rgba(255,215,0,0.8);
+}
+
+/* 勝敗別カラー */
+.win-emperor {
+  color: gold;
+}
+
+.win-slave {
+  color: crimson;
+}
+
+.draw {
+  color: #aaa;
+}
+
+/* フェードイン演出 */
+@keyframes fadeZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.result-animate {
+  animation: fadeZoom 0.6s ease-out;
+}
 </style>
 </head>
 <body>
@@ -147,7 +186,26 @@ function reveal() {
       奴隷側<br>
       <img src="${CARD_IMAGES[slaveCard]}" width="120">
     </div>
-    <p>結果：${result}</p>
+    let resultClass = "draw";
+if (result === "皇帝側勝利") resultClass = "win-emperor";
+if (result === "奴隷側勝利") resultClass = "win-slave";
+
+r.innerHTML = `
+  <div>
+    皇帝側<br>
+    <img src="${CARD_IMAGES[emperorCard]}" width="120">
+  </div>
+
+  <div style="margin-top:10px">
+    奴隷側<br>
+    <img src="${CARD_IMAGES[slaveCard]}" width="120">
+  </div>
+
+  <div class="result-text result-animate ${resultClass}">
+    ${result}
+  </div>
+`;
+
   `;
 
   document.getElementById("nextBtn").classList.remove("hidden");
