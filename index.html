@@ -127,8 +127,11 @@ button.action {
 <div id="hand"></div>
 
 <button id="confirmBtn" class="action hidden">このカードを出す</button>
+  
+<button id="revealBtn" class="hidden">結果を見る</button>
 
 <div id="result" class="hidden"></div>
+  
 <button id="nextBtn" class="action hidden">次へ</button>
 
 <script>
@@ -147,6 +150,8 @@ let emperorHand = [];
 let slaveHand = [];
 let emperorCard = null;
 let slaveCard = null;
+  
+let pendingResult = null;
 
 function setupHands() {
   emperorHand = ["皇帝","市民","市民","市民","市民"];
@@ -257,10 +262,17 @@ function nextPhase() {
 
 document.getElementById("confirmBtn").onclick = () => {
   document.getElementById("confirmBtn").classList.add("hidden");
-  if (!emperorCard) showHand("皇帝");
-  else if (!slaveCard) showHand("奴隷");
-  else reveal();
+
+  if (!emperorCard) {
+    showHand("皇帝");
+  } else if (!slaveCard) {
+    showHand("奴隷");
+  } else {
+    // 両者出し終わったら「結果を見る」ボタン表示
+    document.getElementById("revealBtn").classList.remove("hidden");
+  }
 };
+
 
 document.getElementById("nextBtn").onclick = nextPhase;
 
