@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>二人飲みカード</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      margin-top: 20vh;
+    }
+    #card {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    button {
+      font-size: 20px;
+      padding: 10px 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="turn">プレイヤー1の番</div>
+  <div id="card">タップしてカードを引く</div>
+  <button onclick="draw()">引く</button>
+
+  <script>
+    const cards = [
+      "自分が1杯飲む",
+      "相手に1杯飲ませる",
+      "二人で乾杯",
+      "ジャンケンして負けた方が飲む",
+      "次のターン相手がもう一度引く"
+    ];
+
+    let player = 1;
+
+    function draw() {
+      const card = cards[Math.floor(Math.random() * cards.length)];
+      document.getElementById("card").innerText = card;
+
+      player = player === 1 ? 2 : 1;
+      document.getElementById("turn").innerText = `プレイヤー${player}の番`;
+    }
+  </script>
+
+</body>
+</html>
