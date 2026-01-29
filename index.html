@@ -46,8 +46,15 @@ let slaveCard = null;
 let phase = "select";
 
 function setupHands() {
-  emperorHand = ["皇帝","市民","市民","市民","市民"];
-  slaveHand = ["奴隷","市民","市民","市民","市民"];
+const CARD_IMAGES = {
+  "皇帝": "images/emperor.png",
+  "市民": "images/citizen.png",
+  "奴隷": "images/slave.png"
+};
+
+emperorHand = ["皇帝","市民","市民","市民","市民"];
+slaveHand   = ["奴隷","市民","市民","市民","市民"];
+
 }
 
 setupHands();
