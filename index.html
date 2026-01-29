@@ -1,49 +1,152 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>二人飲みカード</title>
-  <style>
-    body {
-      text-align: center;
-      font-family: sans-serif;
-      margin-top: 20vh;
-    }
-    #card {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    button {
-      font-size: 20px;
-      padding: 10px 30px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Eカード</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #111;
+  color: #fff;
+}
+button {
+  font-size: 18px;
+  padding: 10px 20px;
+  margin: 5px;
+}
+.hidden { display: none; }
+.card {
+  font-size: 24px;
+  margin: 20px;
+}
+</style>
 </head>
 <body>
 
-  <div id="turn">プレイヤー1の番</div>
-  <div id="card">タップしてカードを引く</div>
-  <button onclick="draw()">引く</button>
+<h2 id="status"></h2>
 
-  <script>
-    const cards = [
-      "自分が1杯飲む",
-      "相手に1杯飲ませる",
-      "二人で乾杯",
-      "ジャンケンして負けた方が飲む",
-      "次のターン相手がもう一度引く"
-    ];
+<div id="hand"></div>
+<button id="confirmBtn" class="hidden">このカードを出す</button>
 
-    let player = 1;
+<div id="result" class="hidden"></div>
+<button id="nextBtn" class="hidden">次へ</button>
 
-    function draw() {
-      const card = cards[Math.floor(Math.random() * cards.length)];
-      document.getElementById("card").innerText = card;
+<script>
+let round = 1;
+let battle = 1;
+let turn = 1;
+let emperorWin = 0;
+let slaveWin = 0;
 
-      player = player === 1 ? 2 : 1;
-      document.getElementById("turn").innerText = `プレイヤー${player}の番`;
-    }
-  </script>
+let emperorHand, slaveHand;
+let emperorCard = null;
+let slaveCard = null;
+let phase = "select";
+
+function setupHands() {
+  emperorHand = ["皇帝","市民","市民","市民","市民"];
+  slaveHand = ["奴隷","市民","市民","市民","市民"];
+}
+
+setupHands();
+
+function updateStatus(text) {
+  document.getElementById("status").innerText = text;
+}
+
+function showHand(player) {
+  const handDiv = document.getElementById("hand");
+  handDiv.innerHTML = "";
+  let hand = player === "皇帝" ? emperorHand : slaveHand;
+
+  hand.forEach((card, i) => {
+    const btn = document.createElement("button");
+    btn.innerText = card;
+    btn.onclick = () => selectCard(player, i);
+    handDiv.appendChild(btn);
+  });
+}
+
+function selectCard(player, index) {
+  if (player === "皇帝") {
+    emperorCard = emperorHand.splice(index,1)[0];
+  } else {
+    slaveCard = slaveHand.splice(index,1)[0];
+  }
+  document.getElementById("confirmBtn").classList.remove("hidden");
+}
+
+function judge() {
+  let res = "引き分け";
+  if (emperorCard === "皇帝" && slaveCard === "市民") res = "皇帝側勝利";
+  if (emperorCard === "市民" && slaveCard === "奴隷") res = "皇帝側勝利";
+  if (emperorCard === "奴隷" && slaveCard === "皇帝") res = "奴隷側勝利";
+  if (slaveCard === "奴隷" && emperorCard === "皇帝") res = "奴隷側勝利";
+
+  if (res === "皇帝側勝利") emperorWin++;
+  if (res === "奴隷側勝利") slaveWin++;
+
+  return res;
+}
+
+function nextPhase() {
+  document.getElementById("hand").innerHTML = "";
+  document.getElementById("confirmBtn").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("nextBtn").classList.add("hidden");
+
+  if (round > 12 || emperorWin >= 7 || slaveWin >= 7) {
+    updateStatus(`終了！ 皇帝:${emperorWin}勝 / 奴隷:${slaveWin}勝`);
+    return;
+  }
+
+  updateStatus(`第${round}戦・ターン${turn}`);
+  let first =
+    (turn === 1 || turn === 3) ? "皇帝" :
+    (turn === 2 || turn === 4) ? "奴隷" :
+    "同時";
+
+  updateStatus(`第${round}戦・ターン${turn}（先出し：${first}）`);
+
+  if (first === "皇帝") showHand("皇帝");
+  else showHand("奴隷");
+}
+
+document.getElementById("confirmBtn").onclick = () => {
+  document.getElementById("confirmBtn").classList.add("hidden");
+  if (!emperorCard) showHand("皇帝");
+  else if (!slaveCard) showHand("奴隷");
+  else reveal();
+};
+
+function reveal() {
+  const res = judge();
+  const r = document.getElementById("result");
+  r.classList.remove("hidden");
+  r.innerHTML = `
+    皇帝側：${emperorCard}<br>
+    奴隷側：${slaveCard}<br><br>
+    結果：${res}
+  `;
+  document.getElementById("nextBtn").classList.remove("hidden");
+
+  if (res !== "引き分け" || turn === 5) {
+    round++;
+    turn = 1;
+    setupHands();
+  } else {
+    turn++;
+  }
+
+  emperorCard = slaveCard = null;
+}
+
+document.getElementById("nextBtn").onclick = nextPhase;
+
+nextPhase();
+</script>
 
 </body>
 </html>
