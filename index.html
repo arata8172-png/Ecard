@@ -70,7 +70,12 @@ function showHand(player) {
 
   hand.forEach((card, i) => {
     const btn = document.createElement("button");
-    btn.innerText = card;
+    const img = document.createElement("img");
+img.src = CARD_IMAGES[card];
+img.style.width = "100px";
+
+btn.innerHTML = "";
+btn.appendChild(img);
     btn.onclick = () => selectCard(player, i);
     handDiv.appendChild(btn);
   });
@@ -132,11 +137,19 @@ function reveal() {
   const res = judge();
   const r = document.getElementById("result");
   r.classList.remove("hidden");
-  r.innerHTML = `
-    皇帝側：${emperorCard}<br>
-    奴隷側：${slaveCard}<br><br>
-    結果：${res}
-  `;
+r.innerHTML = `
+  <div>
+    皇帝側<br>
+    <img src="${CARD_IMAGES[emperorCard]}" width="120">
+  </div>
+  <div>
+    奴隷側<br>
+    <img src="${CARD_IMAGES[slaveCard]}" width="120">
+  </div>
+  <br>
+  結果：${res}
+`;
+
   document.getElementById("nextBtn").classList.remove("hidden");
 
   if (res !== "引き分け" || turn === 5) {
