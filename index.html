@@ -4,26 +4,29 @@
 <meta charset="UTF-8">
 <title>Eカード</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body {
-  background: #0b0b0b;
+  background: #111;
   color: #fff;
-  font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+  font-family: sans-serif;
   text-align: center;
-  overflow-x: hidden;
+}
+
+h2 {
+  margin-top: 20px;
 }
 
 #hand {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   margin-top: 20px;
 }
 
 .card-btn {
   background: none;
   border: none;
+  padding: 0;
 }
 
 .card-btn img {
@@ -32,66 +35,15 @@ body {
 
 button.action {
   font-size: 18px;
-  padding: 10px 28px;
+  padding: 10px 25px;
   margin-top: 20px;
 }
 
 .hidden {
   display: none;
 }
-
-/* ===== 結果演出 ===== */
-.result-text {
-  font-size: 48px;
-  font-weight: 900;
-  letter-spacing: 6px;
-  margin-top: 25px;
-}
-
-/* 皇帝勝利 */
-.win-emperor {
-  color: gold;
-  text-shadow:
-    0 0 15px gold,
-    0 0 40px orange;
-  animation: emperorGlow 0.8s ease-out;
-}
-
-/* 奴隷勝利 */
-.win-slave {
-  color: crimson;
-  text-shadow:
-    0 0 20px crimson,
-    0 0 40px darkred;
-  animation: slaveImpact 0.6s ease-out;
-}
-
-/* 引き分け */
-.draw {
-  color: #aaa;
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* ===== アニメーション ===== */
-@keyframes emperorGlow {
-  from { opacity: 0; transform: scale(0.7); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slaveImpact {
-  0%   { transform: scale(0.6) translateX(0); }
-  30%  { transform: scale(1.1) translateX(-8px); }
-  60%  { transform: scale(1.05) translateX(8px); }
-  100% { transform: scale(1); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
 </style>
 </head>
-
 <body>
 
 <h2 id="status"></h2>
@@ -104,14 +56,14 @@ button.action {
 <button id="nextBtn" class="action hidden">次へ</button>
 
 <script>
-// ===== カード画像 =====
+// ===== カード画像定義 =====
 const CARD_IMAGES = {
-  "皇帝": "img src="images=images/emperor.png",
-  "市民": "img src="images=images/citizen.png",
-  "奴隷": "img src="images=images/slave.png"
+  "皇帝": "src=images/emperor.png",
+  "市民": "src=images/citizen.png",
+  "奴隷": "src=images/slave.png"
 };
 
-// ===== 状態 =====
+// ===== ゲーム状態 =====
 let round = 1;
 let turn = 1;
 let emperorWin = 0;
@@ -128,17 +80,20 @@ function setupHands() {
   emperorHand = ["皇帝","市民","市民","市民","市民"];
   slaveHand   = ["奴隷","市民","市民","市民","市民"];
 }
+
 setupHands();
 
+// ===== 表示更新 =====
 function updateStatus(text) {
   document.getElementById("status").innerText = text;
 }
 
-// ===== 手札表示 =====
+// ===== 手札表示（画像ボタン）=====
 function showHand(player) {
-  const hand = player === "皇帝" ? emperorHand : slaveHand;
   const handDiv = document.getElementById("hand");
   handDiv.innerHTML = "";
+
+  const hand = player === "皇帝" ? emperorHand : slaveHand;
 
   hand.forEach((card, index) => {
     const btn = document.createElement("button");
@@ -154,7 +109,7 @@ function showHand(player) {
   });
 }
 
-// ===== 選択 =====
+// ===== カード選択 =====
 function selectCard(player, index) {
   if (player === "皇帝" && !emperorCard) {
     emperorCard = emperorHand.splice(index, 1)[0];
@@ -162,10 +117,11 @@ function selectCard(player, index) {
   if (player === "奴隷" && !slaveCard) {
     slaveCard = slaveHand.splice(index, 1)[0];
   }
+
   document.getElementById("confirmBtn").classList.remove("hidden");
 }
 
-// ===== 判定 =====
+// ===== 勝敗判定 =====
 function judge() {
   if (emperorCard === "皇帝" && slaveCard === "市民") return "皇帝側勝利";
   if (emperorCard === "市民" && slaveCard === "奴隷") return "皇帝側勝利";
@@ -180,20 +136,18 @@ function reveal() {
   if (result === "皇帝側勝利") emperorWin++;
   if (result === "奴隷側勝利") slaveWin++;
 
-  let resultClass = "draw";
-  if (result === "皇帝側勝利") resultClass = "win-emperor";
-  if (result === "奴隷側勝利") resultClass = "win-slave";
-
   const r = document.getElementById("result");
   r.classList.remove("hidden");
   r.innerHTML = `
     <div>
+      皇帝側<br>
       <img src="${CARD_IMAGES[emperorCard]}" width="120">
+    </div>
+    <div style="margin-top:10px">
+      奴隷側<br>
       <img src="${CARD_IMAGES[slaveCard]}" width="120">
     </div>
-    <div class="result-text ${resultClass}">
-      ${result}
-    </div>
+    <p>結果：${result}</p>
   `;
 
   document.getElementById("nextBtn").classList.remove("hidden");
@@ -210,7 +164,7 @@ function reveal() {
   slaveCard = null;
 }
 
-// ===== 次へ =====
+// ===== 次フェーズ =====
 function nextPhase() {
   document.getElementById("hand").innerHTML = "";
   document.getElementById("confirmBtn").classList.add("hidden");
@@ -226,9 +180,25 @@ function nextPhase() {
     (turn === 1 || turn === 3) ? "皇帝" :
     (turn === 2 || turn === 4) ? "奴隷" : "同時";
 
-  updateStatus(`第${round}戦 ターン${turn}（先出し：${first}）`);
+  updateStatus(`第${round}戦 ターン${turn}（先出し：${first}側）`);
+
   showHand(first);
 }
 
+// ===== ボタン処理 =====
 document.getElementById("confirmBtn").onclick = () => {
   document.getElementById("confirmBtn").classList.add("hidden");
+
+  if (!emperorCard) showHand("皇帝");
+  else if (!slaveCard) showHand("奴隷");
+  else reveal();
+};
+
+document.getElementById("nextBtn").onclick = nextPhase;
+
+// ===== スタート =====
+nextPhase();
+</script>
+
+</body>
+</html>
