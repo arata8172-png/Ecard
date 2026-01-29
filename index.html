@@ -2,174 +2,269 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Eカード</title>
 
 <style>
-/* ===== 基本 ===== */
-* {
-  box-sizing: border-box;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
+  html, body {
   width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
-  font-family: sans-serif;
-  background: #111;
-  color: white;
 }
-
 :root {
   --card-width: min(18vw, 90px);
   --result-size: min(7vw, 30px);
 }
 
-/* ===== レイアウト ===== */
-#app {
-  max-width: 100vw;
-  padding: 2vh 3vw;
+body {
+  margin: 0;
+  padding: 0;
+  background: #0b0b0b;
+  color: #fff;
+  font-family: sans-serif;
   text-align: center;
+  overflow: hidden;
 }
 
+/* ===== 上部ステータス ===== */
+#status {
+  font-size: 4vw;
+  margin: 2vh 0;
+}
+
+/* ===== 手札 ===== */
 #hand {
   display: flex;
   justify-content: center;
   gap: 2vw;
-  margin-bottom: 2vh;
+  margin-top: 2vh;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .card-btn {
-  width: var(--card-width);
-  border: none;
   background: none;
+  border: none;
+  padding: 0;
 }
 
 .card-btn img {
-  width: 100%;
+  width: var(--card-width);
+  height: auto;
 }
 
 /* ===== ボタン ===== */
 button.action {
-  font-size: 3.2vw;
-  padding: 0.8vh 4vw;
-  border-radius: 8px;
-  border: none;
-  background: #e63946;
-  color: white;
+  font-size: 4vw;
+  padding: 1.2vh 5vw;
+  margin-top: 2vh;
 }
 
-/* ===== 結果 ===== */
+/* ===== 結果表示 ===== */
 #result {
   margin-top: 2vh;
-  display: none;
 }
 
 .result-text {
   font-size: var(--result-size);
   font-weight: 900;
-  letter-spacing: 0.15em;
-  animation: pop 0.3s ease-out;
+  letter-spacing: 0.25em;
+  margin-top: 1vh;
 }
 
-.win { color: gold; }
-.lose { color: #6cf; }
-.draw { color: #aaa; }
-
-@keyframes pop {
-  from { transform: scale(0.7); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+/* 皇帝勝利 */
+.win-emperor {
+  color: gold;
+  text-shadow:
+    0 0 1.5vh gold,
+    0 0 3vh orange;
+  animation: emperorGlow 0.7s ease-out;
 }
 
-/* ===== 暗転 ===== */
-.dark-overlay {
-  position: fixed;
-  inset: 0;
-  background: black;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 9999;
-  transition: opacity 0.25s ease;
+/* 奴隷勝利 */
+.win-slave {
+  color: crimson;
+  text-shadow:
+    0 0 2vh crimson,
+    0 0 4vh darkred;
+  animation: slaveImpact 0.6s ease-out;
 }
 
-.dark-overlay.active {
-  opacity: 1;
+/* 引き分け */
+.draw {
+  color: #aaa;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ===== アニメ ===== */
+@keyframes emperorGlow {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slaveImpact {
+  0%   { transform: scale(0.7) translateX(0); }
+  30%  { transform: scale(1.1) translateX(-3vw); }
+  60%  { transform: scale(1.05) translateX(3vw); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 </style>
 </head>
 
 <body>
 
-<div id="app">
+<div id="status"></div>
 
-  <h2>カードを選んでください</h2>
+<div id="hand"></div>
 
-  <div id="hand">
-    <button class="card-btn" onclick="selectCard('皇帝')">
-      <img src="emperor.png">
-    </button>
-    <button class="card-btn" onclick="selectCard('市民')">
-      <img src="citizen.png">
-    </button>
-    <button class="card-btn" onclick="selectCard('奴隷')">
-      <img src="slave.png">
-    </button>
-  </div>
+<button id="confirmBtn" class="action hidden">このカードを出す</button>
 
-  <button id="showResultBtn" class="action" style="display:none;">
-    結果を見る
-  </button>
-
-  <div id="result"></div>
-
-</div>
-
-<div id="darkOverlay" class="dark-overlay"></div>
+<div id="result" class="hidden"></div>
+<button id="nextBtn" class="action hidden">次へ</button>
 
 <script>
-/* ===== ゲーム用 ===== */
-let pendingResult = null;
-
-function selectCard(playerCard) {
-  // 仮の相手カード（デモ用）
-  const enemyCard = ["皇帝","市民","奴隷"][Math.floor(Math.random()*3)];
-
-  pendingResult = judge(playerCard, enemyCard);
-
-  document.getElementById("showResultBtn").style.display = "inline-block";
-}
-
-/* 勝敗判定 */
-function judge(p, e) {
-  if (p === e) return { text: "引き分け", cls: "draw" };
-  if (p === "皇帝" && e === "市民") return { text: "勝利", cls: "win" };
-  if (p === "市民" && e === "奴隷") return { text: "勝利", cls: "win" };
-  if (p === "奴隷" && e === "皇帝") return { text: "勝利", cls: "win" };
-  return { text: "敗北", cls: "lose" };
-}
-
-/* 結果を見るボタン */
-document.getElementById("showResultBtn").onclick = () => {
-  const overlay = document.getElementById("darkOverlay");
-
-  // 暗転
-  overlay.classList.add("active");
-
-  setTimeout(() => {
-    showResult(pendingResult);
-    overlay.classList.remove("active");
-
-    document.getElementById("showResultBtn").style.display = "none";
-    pendingResult = null;
-  }, 300);
+const CARD_IMAGES = {
+  "皇帝": src="emperor.png",
+  "市民": src="citizen.png",
+  "奴隷": src="slave.png"
 };
 
-function showResult(result) {
-  const r = document.getElementById("result");
-  r.innerHTML = `<div class="result-text ${result.cls}">${result.text}</div>`;
-  r.style.display = "block";
+let round = 1;
+let turn = 1;
+let emperorWin = 0;
+let slaveWin = 0;
+
+let emperorHand = [];
+let slaveHand = [];
+let emperorCard = null;
+let slaveCard = null;
+
+function setupHands() {
+  emperorHand = ["皇帝","市民","市民","市民","市民"];
+  slaveHand   = ["奴隷","市民","市民","市民","市民"];
 }
+setupHands();
+
+function updateStatus() {
+  document.getElementById("status").innerText =
+    `第${round}戦 ターン${turn}`;
+}
+
+function showHand(player) {
+  const hand = player === "皇帝" ? emperorHand : slaveHand;
+  const div = document.getElementById("hand");
+  div.innerHTML = "";
+
+  hand.forEach((card, i) => {
+    const btn = document.createElement("button");
+    btn.className = "card-btn";
+
+    const img = document.createElement("img");
+    img.src = CARD_IMAGES[card];
+
+    btn.appendChild(img);
+    btn.onclick = () => selectCard(player, i);
+
+    div.appendChild(btn);
+  });
+}
+
+function selectCard(player, index) {
+  if (player === "皇帝" && !emperorCard) {
+    emperorCard = emperorHand.splice(index, 1)[0];
+  }
+  if (player === "奴隷" && !slaveCard) {
+    slaveCard = slaveHand.splice(index, 1)[0];
+  }
+  document.getElementById("confirmBtn").classList.remove("hidden");
+}
+
+function judge() {
+  if (emperorCard === "皇帝" && slaveCard === "市民") return "皇帝側勝利";
+  if (emperorCard === "市民" && slaveCard === "奴隷") return "皇帝側勝利";
+  if (emperorCard === "皇帝" && slaveCard === "奴隷") return "奴隷側勝利";
+  return "引き分け";
+}
+
+function reveal() {
+  // ★ 手札を消す
+  document.getElementById("hand").innerHTML = "";
+
+  const result = judge();
+
+  if (result === "皇帝側勝利") emperorWin++;
+  if (result === "奴隷側勝利") slaveWin++;
+
+  let cls = "draw";
+  if (result === "皇帝側勝利") cls = "win-emperor";
+  if (result === "奴隷側勝利") cls = "win-slave";
+
+  const r = document.getElementById("result");
+  r.classList.remove("hidden");
+  r.innerHTML = `
+    <div>
+      <img src="${CARD_IMAGES[emperorCard]}" style="width:20vw">
+      <img src="${CARD_IMAGES[slaveCard]}" style="width:20vw">
+    </div>
+    <div class="result-text ${cls}">
+      ${result}
+    </div>
+  `;
+
+  document.getElementById("nextBtn").classList.remove("hidden");
+
+  if (result !== "引き分け" || turn === 5) {
+    round++;
+    turn = 1;
+    setupHands();
+  } else {
+    turn++;
+  }
+
+  emperorCard = null;
+  slaveCard = null;
+}
+
+function nextPhase() {
+  document.getElementById("hand").innerHTML = "";
+  document.getElementById("confirmBtn").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("nextBtn").classList.add("hidden");
+
+  if (round > 12 || emperorWin >= 7 || slaveWin >= 7) {
+    document.getElementById("status").innerText =
+      `終了 皇帝${emperorWin}勝 / 奴隷${slaveWin}勝`;
+    return;
+  }
+
+  updateStatus();
+
+  let first =
+    (turn === 1 || turn === 3) ? "皇帝" :
+    (turn === 2 || turn === 4) ? "奴隷" : "皇帝";
+
+  showHand(first);
+}
+
+document.getElementById("confirmBtn").onclick = () => {
+  document.getElementById("confirmBtn").classList.add("hidden");
+  if (!emperorCard) showHand("皇帝");
+  else if (!slaveCard) showHand("奴隷");
+  else reveal();
+};
+
+document.getElementById("nextBtn").onclick = nextPhase;
+
+nextPhase();
 </script>
 
 </body>
