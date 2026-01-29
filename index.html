@@ -189,7 +189,11 @@ function judge() {
 }
 
 function reveal() {
+  // ★ 手札を消す
+  document.getElementById("hand").innerHTML = "";
+
   const result = judge();
+
   if (result === "皇帝側勝利") emperorWin++;
   if (result === "奴隷側勝利") slaveWin++;
 
