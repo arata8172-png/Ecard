@@ -160,11 +160,23 @@ button.action {
 <button id="nextBtn" class="action hidden">次へ</button>
 
 <script>
+const CITIZEN_IMAGES = [
+  "citizen2.png",
+  "citizen3.png",
+  "citizen4.png",
+  "citizen5.png"
+];
 const CARD_IMAGES = {
   "皇帝": src="emperor3.png",
-  "市民": src="citizen2.png",
   "奴隷": src="slave2.png"
 };
+  
+function makeCitizenCard() {
+return {
+  type: "市民",
+  img: CITIZEN_IMAGES[Math.floor(Math.random() * CITIZEN_IMAGES.length)]
+};
+}
 
 let round = 1;
 let turn = 1;
@@ -179,8 +191,21 @@ let slaveCard = null;
 let pendingResult = null;
 
 function setupHands() {
-  emperorHand = ["皇帝","市民","市民","市民","市民"];
-  slaveHand   = ["奴隷","市民","市民","市民","市民"];
+  emperorHand = [
+    { type: "皇帝", img: CARD_IMAGES["皇帝"] },
+    makeCitizenCard(),
+    makeCitizenCard(),
+    makeCitizenCard(),
+    makeCitizenCard()
+  ];
+
+  slaveHand = [
+    { type: "奴隷", img: CARD_IMAGES["奴隷"] },
+    makeCitizenCard(),
+    makeCitizenCard(),
+    makeCitizenCard(),
+    makeCitizenCard()
+  ];
 }
 setupHands();
 
