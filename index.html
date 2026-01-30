@@ -134,13 +134,18 @@ button.action {
 
 <body>
 
-<div id="status"></div>
+<div id="status">カードを選んでください</div>
+  
+<button id="confirmBtn" class="action" style="display:none;">
+  このカードを出す
+</button>
+
+<!-- ★ その下：結果を見る -->
+<button id="showResultBtn" class="action" style="display:none;">
+  結果を見る
+</button>
 
 <div id="hand"></div>
-
-<button id="confirmBtn" class="action hidden">このカードを出す</button>
-  
-<button id="revealBtn" class="hidden">結果を見る</button>
 
 <div id="result" class="hidden"></div>
   
@@ -164,6 +169,9 @@ let emperorCard = null;
 let slaveCard = null;
   
 let pendingResult = null;
+
+let selectedCard = null;
+
 
 function setupHands() {
   emperorHand = ["皇帝","市民","市民","市民","市民"];
