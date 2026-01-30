@@ -189,7 +189,7 @@ function showHand(player) {
     img.src = CARD_IMAGES[card];
 
     btn.appendChild(img);
-    btn.onclick = () => selectCard(player, i);
+    btn.onclick = (e) => selectCard(card, e);
 
     div.appendChild(btn);
   });
