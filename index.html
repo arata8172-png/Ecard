@@ -125,6 +125,10 @@ button.action {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+  .card-btn.selected img {
+  outline: 3px solid #fff;
+  border-radius: 8px;
+}
 </style>
 </head>
 
@@ -191,15 +195,38 @@ function showHand(player) {
   });
 }
 
-function selectCard(player, index) {
-  if (player === "皇帝" && !emperorCard) {
-    emperorCard = emperorHand.splice(index, 1)[0];
+function selectCard(card, event) {
+  // いったん全カードの白枠を外す
+  document
+    .querySelectorAll(".card-btn")
+    .forEach(btn => btn.classList.remove("selected"));
+
+  // 選択したカードだけ白枠を付ける
+  event.currentTarget.classList.add("selected");
+
+  if (isEmperorTurn) {
+    emperorChoice = card;
+    isEmperorTurn = false;
+
+    setTimeout(() => {
+      document.getElementById("status").innerText =
+        "後手がカードを選んでください";
+      document.getElementById("hand").innerHTML = "";
+      renderHand(["slave", "citizen", "citizen", "citizen", "citizen"]);
+    }, 300);
+
+  } else {
+    slaveChoice = card;
+
+    pendingResult = {
+      emperor: emperorChoice,
+      slave: slaveChoice
+    };
+
+    setTimeout(showResultButton, 300);
   }
-  if (player === "奴隷" && !slaveCard) {
-    slaveCard = slaveHand.splice(index, 1)[0];
-  }
-  document.getElementById("confirmBtn").classList.remove("hidden");
 }
+
 
 function judge() {
   if (emperorCard === "皇帝" && slaveCard === "市民") return "皇帝側勝利";
